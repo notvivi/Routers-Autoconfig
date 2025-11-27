@@ -4,68 +4,84 @@
 
 import threading
 import paramiko
-import json
 import time
+import json
+import logging
 
 
-class Router:
-    def __init__(self, ip, username, password, status):
-        self.ip = ip
-        self.username = username
-        self.password = password
+
+class LinuxVps:
+    def __init__(self, host,port, user, status):
+        self.host = host
+        self.port = port
+        self.user = user
         self.status = status
 
 
-def main_loop(routers):
+lock = threading.Lock()
+json_file = "../res/linuxvps.json"
+
+def update_status(port, new_status):
+    with lock:
+        with open(json_file, "r") as f:
+            data = json.load(f)
+
+        for server in data["servers"]:
+            if server["port"] == port:
+                server["status"] = new_status
+                break
+
+        with open(json_file, "w") as f:
+            json.dump(data, f, indent=2)
+
+
+def main_loop(linuxvpss):
     threads = []
 
-    for router in routers:
-        t = threading.Thread(target=configure_router, args=(router,))
+    start = time.time()
+    for linuxvps in linuxvpss:
+        t = threading.Thread(target=configure_linux, args=(linuxvps,))
         t.start()
         threads.append(t)
 
     for t in threads:
         t.join()
 
+    end = time.time()
+    print("Vypocet trval {:.6f} sec.".format((end - start)))
 
-def configure_router(routers):
-    for router in routers:
-        print(f"Connecting to {router.ip}...")
+
+def configure_linux(linuxvps):
+
         try:
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(router.ip, username=router.username, password=router.password, look_for_keys=False)
+            ssh.connect(hostname=linuxvps.host, port=linuxvps.port, username=linuxvps.user, password="jooouda")
 
             remote = ssh.invoke_shell()
             time.sleep(1)
 
-            commands = [
-                "conf t",
-                "service timestamps debug datetime local",
-                "service timestamps log datetime local",
-                "service password-encryption",
-                "no ip http server",
-                "no ip http secure-server",
-                "clock timezone CET 1 0",
-                "clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00",
-                "end",
-                "wr"
-            ]
+            commands = ["uptime","date"]
 
             for cmd in commands:
                 remote.send(cmd + "\n")
-                time.sleep(0.5)
-
-            print(f"Finished configuring {router.ip}")
+                time.sleep(1)
+            update_status(linuxvps.port, "done")
 
             remote.close()
             ssh.close()
+
         except Exception as e:
-            print(f"Failed to connect to {router.ip}: {e}")
+            print(f"Failed to connect to {linuxvps.port}: {e}")
+            update_status(linuxvps.port, "error")
+            logging.error(f"Failed to connect to {linuxvps.port}: {e}")
 
 
 if __name__ == "__main__":
-    with open("../res/routers.json") as f:
+    logging.basicConfig(level=logging.ERROR, filename='../log/logfile.log', filemode='w',
+                        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+    with open(json_file) as f:
         jsondata = json.load(f)
-        routers = [Router(router["ip"], router["username"], router["password"]) for router in jsondata]
-    main_loop(routers)
+        linuxvpss = [LinuxVps(linuxvps["host"], linuxvps["port"], linuxvps["user"], linuxvps["status"]) for linuxvps in jsondata["servers"]]
+    main_loop(linuxvpss)
