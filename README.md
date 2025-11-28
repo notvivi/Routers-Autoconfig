@@ -18,7 +18,7 @@ This python script is about autoconfiguring linux servers via ssh
 ## How to START
 1. After setting up everything, open terminal
 2. Copy `pyinstaller --onefile --add-data "src/config.json;src" --add-data "lib;lib" --add-data "res;res" --add-data "log;log" src/main.py"` and paste it into terminal, press enter
-3. In file explorer go into `dist` and run `main.exe` 
+3. In file terminal use `python -m src.main `
 4. Enjoy
 
 If you need help with anything, contact me at email vtomanova33@gmail.com.
