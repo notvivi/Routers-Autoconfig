@@ -1,9 +1,10 @@
-# Linux VPS Autoconfiguration
-This python script is about autoconfiguring linux servers via ssh
+# Linux Debian VPS Autoconfiguration
+This python script is about autoconfiguring linux debian virtual private servers via ssh
+
 
 ## Requirements
 - python 3.10.0 and more
-- pyinstaller
+- pyinstaller and paramiko
 
 ## How to download pyinstaller
 1. Open terminal
