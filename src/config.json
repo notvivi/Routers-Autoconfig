@@ -1,5 +1,5 @@
 {
-  "linux_vpss_file": "C:/Users/vtoma/Debian-Autoconfig/res/linuxvps.json\n",
+  "linux_vpss_file": "C:/Users/vtoma/Debian-Autoconfig/res/linuxvps.json",
   "log_file": "C:/Users/vtoma/Debian-Autoconfig/log/logfile.log\n",
   "ssh_password": "jooouda",
   "threads": 30,

@@ -145,7 +145,7 @@ if __name__ == "__main__":
         except json.JSONDecodeError as e:
             logging.error(f"Error decoding JSON file {linux_vpss_file}: {e}")
             print(f"Error: JSON file is invalid: {linux_vpss_file}")
-        finally:
-            input("Press Enter to exit...")
+        #finally:
+            #input("Press Enter to exit...")
     else:
         print("Error: Couldnt find json file or log file")

@@ -5,6 +5,7 @@ import sys
 import json
 import os
 import threading
+import time
 lib_path = sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
 sys.path.append(lib_path)
 import resource_path
@@ -12,25 +13,38 @@ import resource_path
 
 def run_script():
     write_into_config()
-
-    threading.Thread(target=run_main_process, daemon=True).start()
+    run_button.config(state="disabled")
+    threading.Thread(target=run_main_process).start()
 
 def run_main_process():
     main_path = resource_path.resource_path("src/main.py")
-    write_output(f"Running: {main_path}\n")
-    process = subprocess.Popen(
-        [sys.executable, main_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True
-    )
+    working_dir = os.path.dirname(main_path)
+    safe_write_output(f"Running: {main_path}\n")
+    try:
+        process = subprocess.Popen(
+            [sys.executable, main_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            cwd=working_dir
+        )
 
-    for line in process.stdout:
-        write_output(line)
+        while True:
+            line = process.stdout.readline()
+            if line:
+                safe_write_output(line)
+            elif process.poll() is not None:
+                break
+            else:
+                time.sleep(0.05)
 
-    process.stdout.close()
-    process.wait()
-    write_output("\nProcess finished.\n")
+        process.stdout.close()
+        process.wait()
+        safe_write_output("\nProcess finished.\n")
+        root.after(0, lambda: run_button.config(state="normal"))
+    except Exception as e:
+        safe_write_output(f"\nError: {e}\n")
+
 
 def write_into_config():
     data = {
@@ -84,7 +98,8 @@ tk.Entry(root, textvariable=vps_file_path, width=45).pack()
 tk.Button(root, text="Vybrat VPS soubor", command=select_vps_file).pack(pady=5)
 
 
-tk.Button(root, text="Run script", command=run_script).pack(pady=20)
+run_button = tk.Button(root, text="Run script", command=run_script)
+run_button.pack(pady=20)
 
 tk.Label(root, text="Output").pack(pady=5)
 
@@ -97,5 +112,9 @@ def write_output(text):
     output_text.insert(tk.END, text)
     output_text.see(tk.END)
     output_text.config(state="disabled")
+
+
+def safe_write_output(text):
+    root.after(0, lambda: write_output(text))
 
 root.mainloop()
