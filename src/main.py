@@ -66,7 +66,7 @@ def update_status(port, new_status):
         with open(linux_vpss_file, "w") as f:
             json.dump(data, f, indent=2)
 
-def main_loop(linuxvpss):
+def main_loop(linuxvpss, thread_count):
     """
     Main loop for the linux vps server.
     :param linuxvpss: List of LinuxVps objects.
@@ -75,6 +75,10 @@ def main_loop(linuxvpss):
     start = time.time()
 
     if thread_count <= 0: raise ValueError("Thread count must be greater than 0")
+    thread_count = min(thread_count, len(linuxvpss))
+
+    print("Thread count: ", thread_count)
+
 
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         executor.map(configure_linux, linuxvpss)
@@ -138,7 +142,7 @@ if __name__ == "__main__":
             with open(linux_vpss_file) as f:
                 jsondata = json.load(f)
                 linuxvpss = [LinuxVps(linuxvps["host"], linuxvps["port"], linuxvps["user"], linuxvps["status"], linuxvps["password_hash"]) for linuxvps in jsondata["servers"]]
-                main_loop(linuxvpss)
+                main_loop(linuxvpss, thread_count)
         except FileNotFoundError:
             print(f"Error: JSON file not found: {linux_vpss_file}")
             logging.error(f"JSON file not found: {linux_vpss_file}")

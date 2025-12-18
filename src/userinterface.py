@@ -103,7 +103,7 @@ run_button.pack(pady=20)
 
 tk.Label(root, text="Output").pack(pady=5)
 
-output_text = tk.Text(root, height=12, width=60, state="disabled")
+output_text = tk.Text(root, height=12, width=100, state="disabled")
 output_text.pack(pady=5)
 
 
