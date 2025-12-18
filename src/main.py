@@ -7,12 +7,16 @@ import paramiko
 import time
 import json
 import logging
+import sys
+import os
 from concurrent.futures import ThreadPoolExecutor
-from lib.resource_path import resource_path
+lib_path = sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
+sys.path.append(lib_path)
+import resource_path
 
 
 try:
-    config_path = resource_path("src/config.json")
+    config_path = resource_path.resource_path("src/config.json")
     with open(config_path, "r" ,encoding="utf-8") as f:
         config = json.load(f)
 except FileNotFoundError:
@@ -23,8 +27,8 @@ except json.JSONDecodeError as e:
     exit(1)
 
 
-linux_vpss_file = resource_path(config.get("linux_vpss_file", "res/linuxvps.json"))
-log_file =  resource_path(config.get("log_file", "log/logfile.log"))
+linux_vpss_file = resource_path.resource_path(config.get("linux_vpss_file", "res/linuxvps.json")).strip()
+log_file =  resource_path.resource_path(config.get("log_file", "log/logfile.log")).strip()
 raw_password = config.get("ssh_password", "heslo1213")
 thread_count = config.get("threads", 20)
 commands = config.get("commands", ["uptime", "date"])
@@ -70,7 +74,7 @@ def main_loop(linuxvpss):
     """
     start = time.time()
 
-    if thread_count <= 0: print("Thread count is greater then or equal to 0")
+    if thread_count <= 0: raise ValueError("Thread count must be greater than 0")
 
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         executor.map(configure_linux, linuxvpss)

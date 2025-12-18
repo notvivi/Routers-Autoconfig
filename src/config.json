@@ -1,7 +1,10 @@
 {
-  "linux_vpss_file": "res/linuxvps.json",
-  "log_file": "log/logfile.log",
+  "linux_vpss_file": "C:/Users/vtoma/Debian-Autoconfig/res/linuxvps.json\n",
+  "log_file": "C:/Users/vtoma/Debian-Autoconfig/log/logfile.log\n",
   "ssh_password": "jooouda",
-  "threads": 20,
-  "commands": ["uptime", "date"]
+  "threads": 30,
+  "commands": [
+    "uptime",
+    "date"
+  ]
 }
